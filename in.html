@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Catalog with Filters</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+
+    header {
+      background: #333;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .container {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .filters {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      flex: 0 0 250px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      height: fit-content;
+    }
+
+    .filters h3 {
+      margin-top: 0;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 0.5rem;
+    }
+
+    .filter-group {
+      margin-bottom: 1rem;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+      flex: 1;
+    }
+
+    .product {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      padding: 1rem;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+
+    .product:hover {
+      transform: translateY(-5px);
+    }
+
+    .product img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+
+    .product h4 {
+      margin: 0.5rem 0;
+    }
+
+    .price {
+      color: #007bff;
+      font-weight: bold;
+    }
+
+    .search-bar {
+      margin-bottom: 1rem;
+      display: flex;
+    }
+
+    .search-bar input {
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    @media(max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .filters {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Product Catalog</h1>
+</header>
+
+<div class="container">
+  <aside class="filters">
+    <div class="filter-group">
+      <h3>Search</h3>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search products...">
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <h3>Category</h3>
+      <label><input type="checkbox" class="category-filter" value="Electronics"> Electronics</label><br>
+      <label><input type="checkbox" class="category-filter" value="Clothing"> Clothing</label><br>
+      <label><input type="checkbox" class="category-filter" value="Home"> Home</label>
+    </div>
+
+    <div class="filter-group">
+      <h3>Price Range</h3>
+      <label><input type="radio" name="price" class="price-filter" value="all" checked> All</label><br>
+      <label><input type="radio" name="price" class="price-filter" value="0-50"> $0 - $50</label><br>
+      <label><input type="radio" name="price" class="price-filter" value="50-100"> $50 - $100</label><br>
+      <label><input type="radio" name="price" class="price-filter" value="100+"> $100+</label>
+    </div>
+  </aside>
+
+  <main class="products" id="productList"></main>
+</div>
+
+<script>
+  const products = [
+    { name: "Wireless Headphones", category: "Electronics", price: 99, image: "https://via.placeholder.com/200x150?text=Headphones" },
+    { name: "Smartphone", category: "Electronics", price: 499, image: "https://via.placeholder.com/200x150?text=Smartphone" },
+    { name: "T-Shirt", category: "Clothing", price: 25, image: "https://via.placeholder.com/200x150?text=T-Shirt" },
+    { name: "Jeans", category: "Clothing", price: 60, image: "https://via.placeholder.com/200x150?text=Jeans" },
+    { name: "Coffee Maker", category: "Home", price: 80, image: "https://via.placeholder.com/200x150?text=Coffee+Maker" },
+    { name: "Lamp", category: "Home", price: 40, image: "https://via.placeholder.com/200x150?text=Lamp" },
+    { name: "Smartwatch", category: "Electronics", price: 150, image: "https://via.placeholder.com/200x150?text=Smartwatch" },
+    { name: "Jacket", category: "Clothing", price: 120, image: "https://via.placeholder.com/200x150?text=Jacket" }
+  ];
+
+  const productList = document.getElementById('productList');
+  const searchInput = document.getElementById('searchInput');
+  const categoryFilters = document.querySelectorAll('.category-filter');
+  const priceFilters = document.querySelectorAll('.price-filter');
+
+  function renderProducts(filteredProducts) {
+    productList.innerHTML = '';
+    if (filteredProducts.length === 0) {
+      productList.innerHTML = '<p>No products found.</p>';
+      return;
+    }
+    filteredProducts.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'product';
+      div.innerHTML = `
+        <img src="${p.image}" alt="${p.name}">
+        <h4>${p.name}</h4>
+        <p class="category">${p.category}</p>
+        <p class="price">$${p.price}</p>
+      `;
+      productList.appendChild(div);
+    });
+  }
+
+  function filterProducts() {
+    const searchValue = searchInput.value.toLowerCase();
+    const selectedCategories = Array.from(categoryFilters)
+      .filter(cb => cb.checked)
+      .map(cb => cb.value);
+    const selectedPrice = Array.from(priceFilters).find(r => r.checked).value;
+
+    const filtered = products.filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(searchValue);
+      const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(p.category);
+      let matchesPrice = true;
+      if (selectedPrice === '0-50') matchesPrice = p.price <= 50;
+      else if (selectedPrice === '50-100') matchesPrice = p.price > 50 && p.price <= 100;
+      else if (selectedPrice === '100+') matchesPrice = p.price > 100;
+      return matchesSearch && matchesCategory && matchesPrice;
+    });
+
+    renderProducts(filtered);
+  }
+
+  searchInput.addEventListener('input', filterProducts);
+  categoryFilters.forEach(cb => cb.addEventListener('change', filterProducts));
+  priceFilters.forEach(rb => rb.addEventListener('change', filterProducts));
+
+  // Initial render
+  renderProducts(products);
+</script>
+
+</body>
+</html>
